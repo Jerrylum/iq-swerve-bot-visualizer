@@ -1,9 +1,15 @@
 <script lang="ts">
-	import { getLocalXY, clamp, Vector } from '$lib';
+	import { getLocalXY, clamp, Vector, type Coordinate } from '$lib';
 	import { Group, Circle } from 'svelte-konva';
 	import type { KonvaDragTransformEvent } from 'svelte-konva';
 
-	const { x: rootX, y: rootY } = $props<{ x: number; y: number }>();
+	export interface JoystickProps {
+		x: number;
+		y: number;
+		update: (pos: Coordinate) => void;
+	}
+
+	const { x: rootX, y: rootY, update }: JoystickProps = $props();
 
 	const joystickOuterRadius = (200 - (20 + 20 + 20) - 20) / 2; // 180
 	const joystickInnerRadius = joystickOuterRadius - 30;
@@ -15,9 +21,11 @@
 
 	/**
 	 * Set the joystick position
-	 * @param pos - The position of the joystick, in cartesian coordinates with Y Axis increases by north, X Axis increases by east, zero point is at the center of the joystick
+	 * @param pos - The position of the joystick, 
+   * in cartesian coordinates with Y Axis increases by north, X Axis increases by east
+   * zero point is at the center of the joystick
 	 */
-	const setJoystick = (pos: Vector) => {
+	const setJoystick = (pos: Coordinate) => {
 		// Calculate the magnitude of the vector by using pythagorean theorem
 		const magnitude = Math.sqrt(pos.x * pos.x + pos.y * pos.y);
 
@@ -38,6 +46,8 @@
 
 		joystickOutputX = Math.round(outputX * 100);
 		joystickOutputY = Math.round(outputY * 100);
+
+		update({ x: joystickOutputX, y: joystickOutputY });
 	};
 
 	const handleJoystickDragMove = (e: KonvaDragTransformEvent) => {
@@ -51,17 +61,14 @@
 		const transformedXY = localXY.subtract(centerXY);
 
 		setJoystick(transformedXY);
-		// console.log('Joystick updated', joystickOutputX, joystickOutputY);
 
 		// set it back to the original position, do not actually drag it
 		konvaJoystickOuter.setPosition({ x: joystickOuterRadius, y: joystickOuterRadius });
 	};
 
-  const handleJoystickDragEnd = (e: KonvaDragTransformEvent) => {
+	const handleJoystickDragEnd = () => {
 		setJoystick(new Vector(0, 0));
-
-    console.log('Joystick drag end');
-  }
+	};
 </script>
 
 <Group x={rootX} y={rootY}>
