@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { getLocalXY, clamp, Vector, type Coordinate } from '$lib';
+	import { getLocalXY, clamp, Vector, type Coordinate, deadband } from '$lib';
 	import { Group, Circle } from 'svelte-konva';
 	import type { KonvaDragTransformEvent } from 'svelte-konva';
 
@@ -21,9 +21,9 @@
 
 	/**
 	 * Set the joystick position
-	 * @param pos - The position of the joystick, 
-   * in cartesian coordinates with Y Axis increases by north, X Axis increases by east
-   * zero point is at the center of the joystick
+	 * @param pos - The position of the joystick,
+	 * in cartesian coordinates with Y Axis increases by north, X Axis increases by east
+	 * zero point is at the center of the joystick
 	 */
 	const setJoystick = (pos: Coordinate) => {
 		// Calculate the magnitude of the vector by using pythagorean theorem
@@ -44,8 +44,8 @@
 		const outputX = clamp(pos.x / (joystickOuterRadius * 0.72), -1, 1);
 		const outputY = -1 * clamp(pos.y / (joystickOuterRadius * 0.72), -1, 1);
 
-		joystickOutputX = Math.round(outputX * 100);
-		joystickOutputY = Math.round(outputY * 100);
+		joystickOutputX = deadband(Math.round(outputX * 100), 10);
+		joystickOutputY = deadband(Math.round(outputY * 100), 10);
 
 		update({ x: joystickOutputX, y: joystickOutputY });
 	};
