@@ -11,7 +11,7 @@
 
 	const { x: rootX, y: rootY, update }: JoystickProps = $props();
 
-	const joystickOuterRadius = (200 - (20 + 20 + 20) - 20) / 2; // 180
+	const joystickOuterRadius = (200 - (20 + 20 + 20) - 20) / 2; // 60
 	const joystickInnerRadius = joystickOuterRadius - 30;
 
 	let joystickOutputX = $state(0); // 0..100
