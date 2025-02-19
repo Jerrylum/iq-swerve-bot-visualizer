@@ -3,23 +3,27 @@
 	import Joystick from '$components/Joystick.svelte';
 	import type { Coordinate } from '$lib';
 	import SwerveModule from '$components/SwerveModule.svelte';
-	import { Motor } from '$lib/Hardware.svelte';
+	import { brakeType, directionType, MotorImpl, rotationUnits, velocityUnits } from '$lib/Hardware.svelte';
 	// import type { Motor} from '$components/SwerveModule.svelte';
 
 	let leftJoystickPos: Coordinate = $state({ x: 0, y: 0 });
 	let rightJoystickPos: Coordinate = $state({ x: 0, y: 0 });
 
-	const m1 = new Motor(1);
-	const m2 = new Motor(2);
-	const m3 = new Motor(3);
-	const m4 = new Motor(4);
+	const m1 = new MotorImpl(1);
+	const m2 = new MotorImpl(2);
+	const m3 = new MotorImpl(3);
+	const m4 = new MotorImpl(4);
 
+	m2.setBrake(brakeType.coast);
+	
 	$effect(() => {
 		// m1.setTargetVelocity(leftJoystickPos.x * 100);
-		m2.setTargetVelocity(leftJoystickPos.y / 100 * 140);
+		// m2.setVelocity(leftJoystickPos.y / 100 * 140, velocityUnits.rpm);
+		// m2.spin(directionType.fwd);
 		// m3.setTargetVelocity(rightJoystickPos.x * 100);
 		// m4.setTargetVelocity(rightJoystickPos.y * 100);
 		// console.log(m2.getTargetVelocity());
+		m2.spinTo(180, rotationUnits.deg, true);
 	});
 
 	setInterval(() => {

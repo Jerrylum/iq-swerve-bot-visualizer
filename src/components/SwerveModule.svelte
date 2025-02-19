@@ -1,5 +1,5 @@
 <script lang="ts">
-	import type { Motor } from '$lib/Hardware.svelte';
+	import { voltageUnits, type MotorImpl } from '$lib/Hardware.svelte';
 	import { Group, Circle, Line, Arrow } from 'svelte-konva';
 
 	const {
@@ -7,18 +7,27 @@
 		y: rootY,
 		driveMotor,
 		steerMotor
-	}: { x: number; y: number; driveMotor: Motor; steerMotor: Motor } = $props();
+	}: { x: number; y: number; driveMotor: MotorImpl; steerMotor: MotorImpl } = $props();
 
 	const swerveModuleOuterRadius = 90;
 	const swerveModuleInnerRadius = swerveModuleOuterRadius * 0.4;
 	let steerAngle = $state(0);
+	// steerMotor.setReverse(true);
+
+	// setTimeout(() => {
+	// 	steerMotor.setTargetVelocity(100);
+	// 	setTimeout(() => {
+	// 		steerMotor.setTargetVelocity(0);
+	// 	}, 1000);
+	// }, 1000);
 
 	$inspect(steerMotor).with((type, steerMotor) => {
 		console.log(type, steerMotor);
 	});
 
 	$effect(() => {
-		console.log('>>>', steerMotor.getAppliedVoltage().toFixed(2), steerMotor.getRealWorldPosition().toFixed(2));
+		// console.log('>>>', steerMotor.getVelocity().toFixed(2), steerMotor.voltage(voltageUnits.volt).toFixed(2));
+		console.log('>>>', steerMotor.getVelocity().toFixed(2), steerMotor.voltage(voltageUnits.volt).toFixed(2));
 
 		steerAngle = steerMotor.getRealWorldPosition() % 360;
 	});
