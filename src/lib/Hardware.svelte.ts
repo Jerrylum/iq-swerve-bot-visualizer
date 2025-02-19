@@ -252,6 +252,11 @@ export class MotorImpl implements Motor {
 	private appliedVoltage: number = $state(0);
 	private momentOfInertia: number; // kg·m²
 
+	// Velocity measurement properties
+	public measuring: number[] = [0, 0, 0, 0]; // last 4 measurements
+	public measuredVelocity: number = 0; // in rpm (measured)
+	private lastMeasuredPosition: number = 0; // in degrees
+
 	// Time properties
 	private timeout = 0;
 	private movementStartTime = 0;
@@ -260,9 +265,9 @@ export class MotorImpl implements Motor {
 	private isPositionControl = true;
 
 	// Velocity control properties
-	private targetVelocity: number = $state(0); // in rpm (desired)
-	private vel_kP: number = 0.13;
-	private vel_kI: number = 0.000;
+	private targetVelocity: number = 0; // in rpm (desired)
+	private vel_kP: number = 0.8;
+	private vel_kI: number = 0.0;
 	private vel_kD: number = 0.001;
 	private velIntegral: number = 0;
 	private velPrevError: number = 0;
@@ -270,9 +275,9 @@ export class MotorImpl implements Motor {
 	// Position control properties
 	private targetPosition: number | null = null;
 	private positionTolerance = 0.375; // degrees
-	private pos_kP: number = 0.01;
-	private pos_kI: number = 0.00;
-	private pos_kD: number = 0;
+	private pos_kP: number = 1;
+	private pos_kI: number = 0.0;
+	private pos_kD: number = 0.03;
 	private posIntegral: number = 0;
 	private posPrevError: number = 0;
 
@@ -289,8 +294,8 @@ export class MotorImpl implements Motor {
 
 	constructor(
 		public readonly port: number,
-		momentOfInertia: number = 0.001, // kg·m²
-		backEMFConstant: number = 0.1 // V·s/rad
+		momentOfInertia: number = 0.003, // kg·m²
+		backEMFConstant: number = 0.02 // V·s/rad
 	) {
 		this.backEMFConstant = backEMFConstant;
 		this.momentOfInertia = momentOfInertia;
@@ -310,6 +315,7 @@ export class MotorImpl implements Motor {
 		} else if (units === velocityUnits.dps) {
 			this.targetVelocity = velocity / 6;
 		}
+		console.log('>>>', this.targetVelocity);
 	}
 
 	/** @inheritdoc */
@@ -343,7 +349,8 @@ export class MotorImpl implements Motor {
 
 	/** @inheritdoc */
 	spin(dir: directionType): void {
-		const directionMultiplier = dir === directionType.fwd ? 1 : -1;
+		const directionMultiplier =
+			(dir === directionType.fwd ? 1 : -1) * this.targetVelocity > 0 ? 1 : -1;
 		this.targetVelocity = Math.abs(this.targetVelocity) * directionMultiplier;
 		this.isPositionControl = false;
 	}
@@ -402,16 +409,6 @@ export class MotorImpl implements Motor {
 		const brakeMode = mode ?? this.brakeMode;
 		this.brakeMode = brakeMode;
 
-		// if (brakeMode === brakeType.brake) {
-		// 	// Dynamic braking simulation
-		// 	const kineticEnergy =
-		// 		0.5 * this.momentOfInertia * Math.pow((this.calculatedVelocity * 2 * Math.PI) / 60, 2);
-
-		// 	// Calculate braking time based on energy dissipation
-		// 	const brakingPower = Math.min(this.maxPower * 2, kineticEnergy / 0.1);
-		// 	this.targetVelocity = 0;
-		// }
-
 		if (brakeMode === brakeType.hold) {
 			this.holdPosition = this.getPosition();
 			this.isPositionControl = true;
@@ -446,10 +443,10 @@ export class MotorImpl implements Motor {
 	/** @inheritdoc */
 	velocity(units: velocityUnits | percentUnits): number {
 		if (units === velocityUnits.pct) {
-			return (this.calculatedVelocity / this.maxRPM) * 100;
+			return (this.measuredVelocity / this.maxRPM) * 100;
 		}
-		if (units === velocityUnits.rpm) return this.calculatedVelocity;
-		if (units === velocityUnits.dps) return this.calculatedVelocity * 6;
+		if (units === velocityUnits.rpm) return this.measuredVelocity;
+		if (units === velocityUnits.dps) return this.measuredVelocity * 6;
 		return 0;
 	}
 
@@ -496,19 +493,26 @@ export class MotorImpl implements Motor {
 	public loop() {
 		const now = Date.now();
 		const dt = (now - this.lastUpdateTime) / 1000; // Convert to seconds
+		const currPos = this.getPosition();
+		const currVel = (currPos - this.lastMeasuredPosition) / dt / 6; // to RPM
+		this.measuring.push(currVel);
+		this.measuring.shift();
+		this.measuredVelocity = this.measuring.reduce((a, b) => a + b, 0) / this.measuring.length;
+		this.lastMeasuredPosition = currPos;
 		this.lastUpdateTime = now;
 
 		// Position control logic
 		if (this.isPositionControl && this.targetPosition !== null) {
 			const error = this.targetPosition - this.getPosition();
-			
+
 			// Position PID
 			this.posIntegral += error * dt;
 			const derivative = (error - this.posPrevError) / dt;
 			this.posPrevError = error;
 
 			// Calculate target velocity from position PID
-			let targetVel = this.pos_kP * error + this.pos_kI * this.posIntegral + this.pos_kD * derivative;
+			let targetVel =
+				this.pos_kP * error + this.pos_kI * this.posIntegral + this.pos_kD * derivative;
 			this.targetVelocity = Math.max(-this.maxRPM, Math.min(targetVel, this.maxRPM));
 		}
 
@@ -524,10 +528,10 @@ export class MotorImpl implements Motor {
 			switch (this.brakeMode) {
 				case brakeType.brake:
 					// Dynamic braking using H-bridge short circuit
-					const currentVelocity = this.calculatedVelocity;
-					const brakingCurrent = Math.abs(currentVelocity) / this.maxRPM * 2.5; // 2.5A max braking current
+					const currentVelocity = this.measuredVelocity;
+					const brakingCurrent = (Math.abs(currentVelocity) / this.maxRPM) * 2.5; // 2.5A max braking current
 					this.brakingTorque = brakingCurrent * this.backEMFConstant;
-					voltage = -Math.sign(currentVelocity) * this.resistance * brakingCurrent;
+					voltage = -currentVelocity * this.resistance * brakingCurrent;
 					break;
 
 				case brakeType.hold:
@@ -543,10 +547,10 @@ export class MotorImpl implements Motor {
 			}
 		} else {
 			// Normal velocity PID control
-			const error = this.targetVelocity - this.calculatedVelocity;
+			const error = this.targetVelocity - this.measuredVelocity;
 			this.velIntegral += error * dt;
 			const derivative = (error - this.velPrevError) / dt;
-			
+
 			// Calculate PID output
 			voltage = this.vel_kP * error + this.vel_kI * this.velIntegral + this.vel_kD * derivative;
 			this.velPrevError = error;
@@ -568,9 +572,9 @@ export class MotorImpl implements Motor {
 		}
 
 		// Thermal protection simulation
-		if (Math.abs(current) > maxCurrent) {
-			voltage *= 0.7; // Reduce voltage if overcurrent
-		}
+		// if (Math.abs(current) > maxCurrent) {
+		// 	voltage *= 0.7; // Reduce voltage if overcurrent
+		// }
 
 		this.appliedVoltage = voltage;
 
@@ -578,7 +582,7 @@ export class MotorImpl implements Motor {
 		const frictionTorque = 0.02 * Math.sign(angularVelocity); // Simple friction model
 		const netTorque = torque - frictionTorque - this.brakingTorque;
 		const acceleration = netTorque / this.momentOfInertia;
-		
+
 		// Integrate acceleration to velocity
 		this.calculatedVelocity += ((acceleration * 60) / (2 * Math.PI)) * dt;
 

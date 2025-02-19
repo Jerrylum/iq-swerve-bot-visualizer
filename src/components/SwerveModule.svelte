@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { voltageUnits, type MotorImpl } from '$lib/Hardware.svelte';
+	import { velocityUnits, voltageUnits, type MotorImpl } from '$lib/Hardware.svelte';
 	import { Group, Circle, Line, Arrow } from 'svelte-konva';
 
 	const {
@@ -26,8 +26,8 @@
 	});
 
 	$effect(() => {
-		// console.log('>>>', steerMotor.getVelocity().toFixed(2), steerMotor.voltage(voltageUnits.volt).toFixed(2));
 		console.log('>>>', steerMotor.getVelocity().toFixed(2), steerMotor.voltage(voltageUnits.volt).toFixed(2));
+		// console.log('>>>', steerMotor.measuredVelocity.toFixed(2), steerMotor.velocity(velocityUnits.rpm).toFixed(2));
 
 		steerAngle = steerMotor.getRealWorldPosition() % 360;
 	});

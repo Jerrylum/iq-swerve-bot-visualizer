@@ -14,16 +14,17 @@
 	const m3 = new MotorImpl(3);
 	const m4 = new MotorImpl(4);
 
-	m2.setBrake(brakeType.coast);
+	m2.setBrake(brakeType.hold);
 	
 	$effect(() => {
 		// m1.setTargetVelocity(leftJoystickPos.x * 100);
-		// m2.setVelocity(leftJoystickPos.y / 100 * 140, velocityUnits.rpm);
-		// m2.spin(directionType.fwd);
+		// m2.setVelocity(60, velocityUnits.rpm);
+		m2.setVelocity(leftJoystickPos.y / 100 * 140, velocityUnits.rpm);
+		m2.spin(directionType.fwd);
 		// m3.setTargetVelocity(rightJoystickPos.x * 100);
 		// m4.setTargetVelocity(rightJoystickPos.y * 100);
 		// console.log(m2.getTargetVelocity());
-		m2.spinTo(180, rotationUnits.deg, true);
+		// m2.spinTo(180, rotationUnits.deg, true);
 	});
 
 	setInterval(() => {
