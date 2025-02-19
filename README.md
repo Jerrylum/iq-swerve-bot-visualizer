@@ -36,3 +36,8 @@ npm run build
 You can preview the production build with `npm run preview`.
 
 > To deploy your app, you may need to install an [adapter](https://svelte.dev/docs/kit/adapters) for your target environment.
+
+## Reference
+
+- [Swerve Drive - Team 6624's Software Guide](https://compendium.readthedocs.io/en/latest/tasks/drivetrains/swerve.html)
+- [Swerve Drive - 6083程式組傳承檔案](https://hackmd.io/@6083overlookingPrograming/B1psNHAqR)
