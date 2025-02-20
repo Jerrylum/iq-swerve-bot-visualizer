@@ -5,6 +5,8 @@
 	import SwerveModule from '$components/SwerveModule.svelte';
 	import {
 		brakeType,
+		ContextImpl,
+		DeviceType,
 		directionType,
 		MotorImpl,
 		rotationUnits,
@@ -37,10 +39,17 @@
 	const steeringInertia: number = 1e-3; // Unit: kg·m²
 	const driveInertia: number = 1e-3; // Unit: kg·m²
 
+	const context = new ContextImpl();
+
 	const m6 = new MotorImpl(6, driveInertia);
 	const m3 = new MotorImpl(3, steeringInertia);
 	const m12 = new MotorImpl(12, driveInertia);
 	const m9 = new MotorImpl(9, steeringInertia);
+
+	context.addDevice(m6);
+	context.addDevice(m3);
+	context.addDevice(m12);
+	context.addDevice(m9);
 
 	let leftJoystickPos: Coordinate = $state({ x: 0, y: 0 });
 	let rightJoystickPos: Coordinate = $state({ x: 0, y: 0 });

@@ -98,7 +98,22 @@ export enum torqueUnits {
 	InLb = 'InLb'
 }
 
-export interface Motor {
+export enum DeviceType {
+	Motor = 'Motor'
+}
+
+export type SupportedDevice = {
+	[DeviceType.Motor]: Motor;
+};
+
+export interface Device {
+	readonly type: DeviceType;
+	readonly port: number;
+}
+
+export interface Motor extends Device {
+	readonly type: DeviceType.Motor;
+
 	/**
 	 * Sets the motor mode to "reverse"
 	 * @param value If true, commands spin in opposite direction
@@ -239,7 +254,13 @@ export interface Motor {
 	efficiency(units: percentUnits): number;
 }
 
+export interface Context {
+	getDevice<T extends DeviceType>(port: number, type: T): SupportedDevice[T];
+}
+
 export class MotorImpl implements Motor {
+	readonly type = DeviceType.Motor;
+
 	private readonly maxVoltage: number = 7.2; // Max allowed voltage
 	private readonly maxCommandRPM = 120; // 120 RPM
 	private readonly maxPhysicalRPM = 140; // 140 RPM
@@ -612,5 +633,27 @@ export class MotorImpl implements Motor {
 
 	public getRealWorldPosition() {
 		return this.realWorldPosition;
+	}
+}
+
+export class ContextImpl implements Context {
+	private readonly devices: {
+		[key: number]: Device;
+	} = {};
+
+	constructor() {}
+
+	public addDevice(device: Device) {
+		if (this.devices[device.port]) {
+			throw new Error(`Device already exists on port ${device.port}`);
+		}
+		this.devices[device.port] = device;
+	}
+
+	public getDevice<T extends DeviceType>(port: number, type: T): SupportedDevice[T] {
+		const device = this.devices[port];
+		if (!device) throw new Error(`Device not found on port ${port}`);
+		if (device.type !== type) throw new Error(`Device on port ${port} is not of type ${type}`);
+		return device as SupportedDevice[T];
 	}
 }
