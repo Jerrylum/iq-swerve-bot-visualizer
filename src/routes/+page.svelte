@@ -3,32 +3,58 @@
 	import Joystick from '$components/Joystick.svelte';
 	import type { Coordinate } from '$lib';
 	import SwerveModule from '$components/SwerveModule.svelte';
-	import { brakeType, directionType, MotorImpl, rotationUnits, velocityUnits } from '$lib/Hardware.svelte';
+	import {
+		brakeType,
+		directionType,
+		MotorImpl,
+		rotationUnits,
+		velocityUnits
+	} from '$lib/Hardware.svelte';
 	// import type { Motor} from '$components/SwerveModule.svelte';
 
 	let leftJoystickPos: Coordinate = $state({ x: 0, y: 0 });
 	let rightJoystickPos: Coordinate = $state({ x: 0, y: 0 });
 
-	const m1 = new MotorImpl(1);
-	const m2 = new MotorImpl(2);
-	const m3 = new MotorImpl(3);
-	const m4 = new MotorImpl(4);
+	/**
+	 * The moment of inertia of a uniformly distributed solid cylinder rotating about its central axis.
+	 *
+	 * Calculated using the formula for a solid cylinder:
+	 *   I = (1/2) * mass * radius²
+	 *
+	 * Parameters:
+	 * - Mass: 800 grams converted to kilograms (0.8 kg)
+	 * - Radius: 5 cm converted to meters (0.05 m)
+	 *
+	 * Calculation steps:
+	 * 1. Square the radius: (0.05 m)^2 = 0.0025 m²
+	 * 2. Multiply by mass: 0.8 kg * 0.0025 m² = 0.002 kg·m²
+	 * 3. Apply the 1/2 factor: 0.002 kg·m² * 0.5 = 0.001 kg·m²
+	 *
+	 * Final value in scientific notation matches input precision (3 significant figures).
+	 * Represents rotational resistance of the cylinder about its central axis.
+	 */
+	const steeringInertia: number = 1e-3; // Unit: kg·m²
+	const driveInertia: number = 1e-3; // Unit: kg·m²
 
-	m2.setBrake(brakeType.hold);
-	
+	const m6 = new MotorImpl(6, driveInertia);
+	const m3 = new MotorImpl(3, steeringInertia);
+	const m12 = new MotorImpl(12, driveInertia);
+	const m9 = new MotorImpl(9, steeringInertia);
+
+	m3.setBrake(brakeType.coast);
+
 	$effect(() => {
 		// m1.setTargetVelocity(leftJoystickPos.x * 100);
-		// m2.setVelocity(60, velocityUnits.rpm);
-		m2.setVelocity(leftJoystickPos.y / 100 * 140, velocityUnits.rpm);
-		m2.spin(directionType.fwd);
+		m3.setVelocity((leftJoystickPos.y / 100) * 140, velocityUnits.rpm);
+		m3.spin(directionType.fwd);
 		// m3.setTargetVelocity(rightJoystickPos.x * 100);
 		// m4.setTargetVelocity(rightJoystickPos.y * 100);
 		// console.log(m2.getTargetVelocity());
-		// m2.spinTo(180, rotationUnits.deg, true);
+		// m3.spinTo(180, rotationUnits.deg, true);
 	});
 
 	setInterval(() => {
-		m2.loop();
+		m3.loop();
 	}, 20);
 </script>
 
@@ -55,11 +81,11 @@
 			</Group>
 			<Group x={360} y={40}>
 				<Text x={0} y={0} text="Left Swerve Drive" fontSize={20} />
-				<SwerveModule x={0} y={40} driveMotor={m1} steerMotor={m2} />
+				<SwerveModule x={0} y={40} driveMotor={m6} steerMotor={m3} />
 			</Group>
 			<Group x={580} y={40}>
 				<Text x={0} y={0} text="Right Swerve Drive" fontSize={20} />
-				<SwerveModule x={0} y={40} driveMotor={m3} steerMotor={m4} />
+				<SwerveModule x={0} y={40} driveMotor={m12} steerMotor={m9} />
 			</Group>
 		</Layer>
 	</Stage>

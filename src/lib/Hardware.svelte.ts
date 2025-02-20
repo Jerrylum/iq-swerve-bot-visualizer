@@ -1,3 +1,5 @@
+import { clamp } from '$lib';
+
 /**
  * Measurement units for velocity values
  */
@@ -239,45 +241,46 @@ export interface Motor {
 
 export class MotorImpl implements Motor {
 	private readonly maxVoltage: number = 7.2; // Max allowed voltage
-	private readonly maxRPM = 120; // 120 RPM
-	// private readonly stallTorque = 0.414; // Nm
+	private readonly maxCommandRPM = 120; // 120 RPM
+	private readonly maxPhysicalRPM = 140; // 140 RPM
 	private readonly resistance = 2.4; // Calculated from stall current: R = V/I = 7.2V/3A = 2.4Ω
-	private readonly backEMFConstant: number;
+	private readonly backEMFConstant: number = 0.02; // V·s/rad
 
 	private reverse: boolean = $state(false);
-	private voltageLimit: number = $state(this.maxVoltage);
-	private calculatedVelocity: number = $state(0); // in rpm (actual)
 	private zeroPosition: number = $state(0); // in degrees
 	private realWorldPosition: number = $state(0); // in degrees
-	private appliedVoltage: number = $state(0);
-	private momentOfInertia: number; // kg·m²
+	private appliedVoltage: number = $state(0); // in volts
+	private momentOfInertia: number = $state(0); // kg·m²
 
-	// Velocity measurement properties
-	public measuring: number[] = [0, 0, 0, 0]; // last 4 measurements
-	public measuredVelocity: number = 0; // in rpm (measured)
+	// Internal measurement properties
+	private calculatedVelocity: number = 0; // in rpm (actual)
+	private voltageLimit: number = this.maxVoltage;
+	private measuring: number[] = [0, 0]; // last n measurements
+	private measuredVelocity: number = $state(0); // in rpm (measured)
 	private lastMeasuredPosition: number = 0; // in degrees
+	private lastUpdateTime: number = Date.now();
 
 	// Time properties
 	private timeout = 0;
 	private movementStartTime = 0;
 
 	// If true, the motor is in position control mode, otherwise it is in velocity control mode
-	private isPositionControl = true;
+	private isPositionControl = $state(false);
 
 	// Velocity control properties
-	private targetVelocity: number = 0; // in rpm (desired)
-	private vel_kP: number = 0.8;
-	private vel_kI: number = 0.0;
-	private vel_kD: number = 0.001;
+	private targetVelocity: number = $state(0); // in rpm (desired)
+	private readonly vel_kP: number = 0.8;
+	private readonly vel_kI: number = 0.0;
+	private readonly vel_kD: number = 0.001;
 	private velIntegral: number = 0;
 	private velPrevError: number = 0;
 
 	// Position control properties
 	private targetPosition: number | null = null;
 	private positionTolerance = 0.375; // degrees
-	private pos_kP: number = 1;
-	private pos_kI: number = 0.0;
-	private pos_kD: number = 0.03;
+	private readonly pos_kP: number = 1;
+	private readonly pos_kI: number = 0.0;
+	private readonly pos_kD: number = 0.03;
 	private posIntegral: number = 0;
 	private posPrevError: number = 0;
 
@@ -285,19 +288,10 @@ export class MotorImpl implements Motor {
 	private brakeMode: brakeType = brakeType.coast;
 	private holdPosition: number | null = null;
 
-	// Updated motor constants based on specs
-	private readonly maxPower = 1.4; // Watts (mechanical)
-
-	// Add braking simulation properties
-	private brakingTorque: number = 0;
-	private lastUpdateTime: number = Date.now();
-
 	constructor(
 		public readonly port: number,
-		momentOfInertia: number = 0.003, // kg·m²
-		backEMFConstant: number = 0.02 // V·s/rad
+		momentOfInertia: number // kg·m²
 	) {
-		this.backEMFConstant = backEMFConstant;
 		this.momentOfInertia = momentOfInertia;
 	}
 
@@ -309,13 +303,12 @@ export class MotorImpl implements Motor {
 	/** @inheritdoc */
 	setVelocity(velocity: number, units: velocityUnits | percentUnits): void {
 		if (units === velocityUnits.pct) {
-			this.targetVelocity = (velocity / 100) * this.maxRPM;
+			this.targetVelocity = (velocity / 100) * this.maxCommandRPM;
 		} else if (units === velocityUnits.rpm) {
 			this.targetVelocity = velocity;
 		} else if (units === velocityUnits.dps) {
 			this.targetVelocity = velocity / 6;
 		}
-		console.log('>>>', this.targetVelocity);
 	}
 
 	/** @inheritdoc */
@@ -386,7 +379,7 @@ export class MotorImpl implements Motor {
 
 	/** @inheritdoc */
 	isSpinning(): boolean {
-		return Math.abs(this.calculatedVelocity) > 0.1 || (this.isPositionControl && !this.isDone());
+		return Math.abs(this.measuredVelocity) > 0.1 || (this.isPositionControl && !this.isDone());
 	}
 
 	/** @inheritdoc */
@@ -431,7 +424,7 @@ export class MotorImpl implements Motor {
 
 	/** @inheritdoc */
 	direction(): directionType {
-		return this.calculatedVelocity >= 0 ? directionType.fwd : directionType.rev;
+		return this.measuredVelocity >= 0 ? directionType.fwd : directionType.rev;
 	}
 
 	/** @inheritdoc */
@@ -443,7 +436,7 @@ export class MotorImpl implements Motor {
 	/** @inheritdoc */
 	velocity(units: velocityUnits | percentUnits): number {
 		if (units === velocityUnits.pct) {
-			return (this.measuredVelocity / this.maxRPM) * 100;
+			return (this.measuredVelocity / this.maxCommandRPM) * 100;
 		}
 		if (units === velocityUnits.rpm) return this.measuredVelocity;
 		if (units === velocityUnits.dps) return this.measuredVelocity * 6;
@@ -513,7 +506,7 @@ export class MotorImpl implements Motor {
 			// Calculate target velocity from position PID
 			let targetVel =
 				this.pos_kP * error + this.pos_kI * this.posIntegral + this.pos_kD * derivative;
-			this.targetVelocity = Math.max(-this.maxRPM, Math.min(targetVel, this.maxRPM));
+			this.targetVelocity = targetVel; // no clamping
 		}
 
 		// Handle timeout
@@ -523,14 +516,15 @@ export class MotorImpl implements Motor {
 
 		// Brake mode handling
 		let voltage = 0;
+		let brakingTorque = 0;
 		if (this.targetVelocity === 0 && !this.isPositionControl) {
 			// Handle different brake modes when not in position control
 			switch (this.brakeMode) {
 				case brakeType.brake:
 					// Dynamic braking using H-bridge short circuit
 					const currentVelocity = this.measuredVelocity;
-					const brakingCurrent = (Math.abs(currentVelocity) / this.maxRPM) * 2.5; // 2.5A max braking current
-					this.brakingTorque = brakingCurrent * this.backEMFConstant;
+					const brakingCurrent = (Math.abs(currentVelocity) / this.maxCommandRPM) * 1; // 1A max braking current
+					brakingTorque = brakingCurrent * this.backEMFConstant;
 					voltage = -currentVelocity * this.resistance * brakingCurrent;
 					break;
 
@@ -557,8 +551,8 @@ export class MotorImpl implements Motor {
 		}
 
 		// Apply voltage limiting based on max power
-		const maxCurrent = Math.sqrt(this.maxPower / this.resistance);
-		voltage = Math.max(-this.voltageLimit, Math.min(voltage, this.voltageLimit));
+		voltage = clamp(voltage, -this.voltageLimit, this.voltageLimit);
+		this.appliedVoltage = voltage;
 
 		// Simulate electrical characteristics
 		const angularVelocity = (this.calculatedVelocity / 60) * 2 * Math.PI;
@@ -568,19 +562,15 @@ export class MotorImpl implements Motor {
 
 		// Add braking torque if active
 		if (this.brakeMode === brakeType.brake && this.targetVelocity === 0) {
-			torque -= Math.sign(angularVelocity) * this.brakingTorque;
+			torque -= Math.sign(angularVelocity) * brakingTorque;
 		}
 
-		// Thermal protection simulation
-		// if (Math.abs(current) > maxCurrent) {
-		// 	voltage *= 0.7; // Reduce voltage if overcurrent
-		// }
-
-		this.appliedVoltage = voltage;
-
 		// Update physics with better friction model
-		const frictionTorque = 0.02 * Math.sign(angularVelocity); // Simple friction model
-		const netTorque = torque - frictionTorque - this.brakingTorque;
+		const frictionTorque =
+			dt *
+			Math.sign(angularVelocity) *
+			(1 + Math.pow(Math.abs(this.calculatedVelocity) / this.maxPhysicalRPM, 2) * 2); // Exponential friction increase with speed
+		const netTorque = torque - frictionTorque - brakingTorque;
 		const acceleration = netTorque / this.momentOfInertia;
 
 		// Integrate acceleration to velocity
@@ -596,11 +586,9 @@ export class MotorImpl implements Motor {
 		const degPerUpdate = (this.calculatedVelocity / 60) * 360 * dt;
 		const positionDelta = degPerUpdate * (this.reverse ? -1 : 1);
 		this.realWorldPosition += positionDelta;
-		this.realWorldPosition = Math.round(this.realWorldPosition / 0.375) * 0.375; // Encoder resolution
 
-		// Reset braking torque if stopped
+		// Stop motor physics if velocity is too low
 		if (Math.abs(this.calculatedVelocity) < 0.5) {
-			this.brakingTorque = 0;
 			this.calculatedVelocity = 0;
 		}
 	}
@@ -614,7 +602,7 @@ export class MotorImpl implements Motor {
 	}
 
 	public getVelocity() {
-		return this.calculatedVelocity; // TODO, use measured velocity
+		return this.measuredVelocity;
 	}
 
 	public getPosition(): number {
