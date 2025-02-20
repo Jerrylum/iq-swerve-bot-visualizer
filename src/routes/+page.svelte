@@ -4,13 +4,13 @@
 	import type { Coordinate } from '$lib';
 	import SwerveModule from '$components/SwerveModule.svelte';
 	import {
-		brakeType,
+		BrakeType,
 		ContextImpl,
 		DeviceType,
-		directionType,
+		DirectionType,
 		MotorImpl,
-		rotationUnits,
-		velocityUnits
+		RotationUnits,
+		VelocityUnits
 	} from '$lib/Hardware.svelte';
 
 	interface SwerveModuleUpdate {
@@ -58,12 +58,12 @@
 	let leftSwerveModuleValues: SwerveModuleUpdate = $state({ steerAngle: 0, driveVelocity: 0 });
 	let rightSwerveModuleValues: SwerveModuleUpdate = $state({ steerAngle: 0, driveVelocity: 0 });
 
-	m3.setBrake(brakeType.coast);
+	m3.setBrake(BrakeType.coast);
 
 	$effect(() => {
 		// m1.setTargetVelocity(leftJoystickPos.x * 100);
-		m6.setVelocity((leftJoystickPos.y / 100) * 140, velocityUnits.rpm);
-		m6.spin(directionType.fwd);
+		m6.setVelocity((leftJoystickPos.y / 100) * 140, VelocityUnits.rpm);
+		m6.spin(DirectionType.fwd);
 		// m3.setTargetVelocity(rightJoystickPos.x * 100);
 		// m4.setTargetVelocity(rightJoystickPos.y * 100);
 		console.log(m6.getTargetVelocity(), m6.getVelocity());

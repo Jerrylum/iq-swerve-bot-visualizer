@@ -3,7 +3,7 @@ import { clamp } from '$lib';
 /**
  * Measurement units for velocity values
  */
-export enum velocityUnits {
+export enum VelocityUnits {
 	/** Velocity as percentage of maximum (120RPM) */
 	pct = 'pct',
 	/** Rotations per minute */
@@ -15,7 +15,7 @@ export enum velocityUnits {
 /**
  * Measurement units for percentage values
  */
-export enum percentUnits {
+export enum PercentUnits {
 	/** Percentage unit (0-100%) */
 	pct = 'pct'
 }
@@ -23,7 +23,7 @@ export enum percentUnits {
 /**
  * Braking modes for motor stopping
  */
-export enum brakeType {
+export enum BrakeType {
 	/** Motor coasts to stop */
 	coast = 'coast',
 	/** Motor stops immediately with braking */
@@ -35,7 +35,7 @@ export enum brakeType {
 /**
  * Motor rotation directions
  */
-export enum directionType {
+export enum DirectionType {
 	/** Forward direction */
 	fwd = 'fwd',
 	/** Reverse direction */
@@ -45,7 +45,7 @@ export enum directionType {
 /**
  * Measurement units for rotation values
  */
-export enum rotationUnits {
+export enum RotationUnits {
 	/** Rotation in degrees */
 	deg = 'deg',
 	/** Rotation in full revolutions */
@@ -55,7 +55,7 @@ export enum rotationUnits {
 /**
  * Measurement units for time values
  */
-export enum timeUnits {
+export enum TimeUnits {
 	/** Time in seconds */
 	sec = 'sec',
 	/** Time in milliseconds */
@@ -65,7 +65,7 @@ export enum timeUnits {
 /**
  * Measurement units for electrical current
  */
-export enum currentUnits {
+export enum CurrentUnits {
 	/** Current in amperes */
 	amp = 'amp'
 }
@@ -73,7 +73,7 @@ export enum currentUnits {
 /**
  * Measurement units for voltage
  */
-export enum voltageUnits {
+export enum VoltageUnits {
 	/** Voltage in volts */
 	volt = 'volt',
 	/** Voltage in millivolts */
@@ -83,7 +83,7 @@ export enum voltageUnits {
 /**
  * Measurement units for power
  */
-export enum powerUnits {
+export enum PowerUnits {
 	/** Power in watts */
 	watt = 'watt'
 }
@@ -91,7 +91,7 @@ export enum powerUnits {
 /**
  * Measurement units for torque
  */
-export enum torqueUnits {
+export enum TorqueUnits {
 	/** Torque in Newton Meters */
 	Nm = 'Nm',
 	/** Torque in Inch Pounds */
@@ -129,20 +129,20 @@ export interface Motor extends Device {
 	 * @param velocity The target velocity
 	 * @param units Measurement units for velocity
 	 */
-	setVelocity(velocity: number, units: velocityUnits): void;
-	setVelocity(velocity: number, units: percentUnits): void;
+	setVelocity(velocity: number, units: VelocityUnits): void;
+	setVelocity(velocity: number, units: PercentUnits): void;
 
 	/**
 	 * Sets legacy braking mode
 	 * @param mode Brake mode (coast, brake, hold)
 	 */
-	setBrake(mode: brakeType): void;
+	setBrake(mode: BrakeType): void;
 
 	/**
 	 * Sets stopping mode
 	 * @param mode Brake mode (coast, brake, hold)
 	 */
-	setStopping(mode: brakeType): void;
+	setStopping(mode: BrakeType): void;
 
 	/** Resets rotation sensor to zero */
 	resetPosition(): void;
@@ -152,20 +152,20 @@ export interface Motor extends Device {
 	 * @param value New position value
 	 * @param units Rotation units for position
 	 */
-	setPosition(value: number, units: rotationUnits): void;
+	setPosition(value: number, units: RotationUnits): void;
 
 	/**
 	 * Sets movement timeout
 	 * @param time Timeout duration
 	 * @param units Time units
 	 */
-	setTimeout(time: number, units: timeUnits): void;
+	setTimeout(time: number, units: TimeUnits): void;
 
 	/**
 	 * Spins motor in specified direction
 	 * @param dir Movement direction
 	 */
-	spin(dir: directionType): void;
+	spin(dir: DirectionType): void;
 
 	/**
 	 * Spins to absolute position
@@ -173,7 +173,7 @@ export interface Motor extends Device {
 	 * @param units Rotation units
 	 * @param waitForCompletion Whether to block until complete
 	 */
-	spinTo(rotation: number, units: rotationUnits, waitForCompletion?: boolean): Promise<boolean>;
+	spinTo(rotation: number, units: RotationUnits, waitForCompletion?: boolean): Promise<boolean>;
 
 	/**
 	 * Spins for relative rotation
@@ -181,7 +181,7 @@ export interface Motor extends Device {
 	 * @param units Rotation units
 	 * @param waitForCompletion Whether to block until complete
 	 */
-	spinFor(rotation: number, units: rotationUnits, waitForCompletion?: boolean): Promise<boolean>;
+	spinFor(rotation: number, units: RotationUnits, waitForCompletion?: boolean): Promise<boolean>;
 
 	/** Checks if motor is actively spinning */
 	isSpinning(): boolean;
@@ -199,63 +199,63 @@ export interface Motor extends Device {
 	 * Stops motor with specified brake mode
 	 * @param mode Brake mode (coast, brake, hold)
 	 */
-	stop(mode: brakeType): void;
+	stop(mode: BrakeType): void;
 
 	/**
 	 * Sets maximum torque
 	 * @param value Torque limit value
 	 * @param units Measurement units
 	 */
-	setMaxTorque(value: number, units: percentUnits): void;
-	setMaxTorque(value: number, units: torqueUnits): void;
-	setMaxTorque(value: number, units: currentUnits): void;
+	setMaxTorque(value: number, units: PercentUnits): void;
+	setMaxTorque(value: number, units: TorqueUnits): void;
+	setMaxTorque(value: number, units: CurrentUnits): void;
 
 	/** Gets current movement direction */
-	direction(): directionType;
+	direction(): DirectionType;
 
 	/**
 	 * Gets current position
 	 * @param units Rotation units for return value
 	 */
-	position(units: rotationUnits): number;
+	position(units: RotationUnits): number;
 
 	/**
 	 * Gets current velocity
 	 * @param units Velocity units for return value
 	 */
-	velocity(units: velocityUnits | percentUnits): number;
-	velocity(units: percentUnits): number;
+	velocity(units: VelocityUnits | PercentUnits): number;
+	velocity(units: PercentUnits): number;
 
 	/**
 	 * Gets electrical current
 	 * @param units Current units
 	 */
-	current(units: currentUnits): number;
-	current(units: percentUnits): number;
+	current(units: CurrentUnits): number;
+	current(units: PercentUnits): number;
 
 	/**
 	 * Gets electrical voltage
 	 * @param units Voltage units
 	 */
-	voltage(units: voltageUnits): number;
+	voltage(units: VoltageUnits): number;
 
 	/**
 	 * Gets power consumption
 	 * @param units Power units
 	 */
-	power(units: powerUnits): number;
+	power(units: PowerUnits): number;
 
 	/**
 	 * Gets output torque
 	 * @param units Torque units
 	 */
-	torque(units: torqueUnits): number;
+	torque(units: TorqueUnits): number;
 
 	/**
 	 * Gets efficiency
 	 * @param units Efficiency units
 	 */
-	efficiency(units: percentUnits): number;
+	efficiency(units: PercentUnits): number;
 }
 
 export interface Context {
@@ -322,7 +322,7 @@ export class MotorImpl implements Motor, DeviceImpl {
 	private posPrevError: number = 0;
 
 	// Brake simulation
-	private brakeMode: brakeType = brakeType.coast;
+	private brakeMode: BrakeType = BrakeType.coast;
 	private holdPosition: number | null = null;
 
 	constructor(
@@ -338,23 +338,23 @@ export class MotorImpl implements Motor, DeviceImpl {
 	}
 
 	/** @inheritdoc */
-	setVelocity(velocity: number, units: velocityUnits | percentUnits): void {
-		if (units === velocityUnits.pct) {
+	setVelocity(velocity: number, units: VelocityUnits | PercentUnits): void {
+		if (units === VelocityUnits.pct) {
 			this.targetVelocity = (velocity / 100) * this.maxCommandRPM;
-		} else if (units === velocityUnits.rpm) {
+		} else if (units === VelocityUnits.rpm) {
 			this.targetVelocity = velocity;
-		} else if (units === velocityUnits.dps) {
+		} else if (units === VelocityUnits.dps) {
 			this.targetVelocity = velocity / 6;
 		}
 	}
 
 	/** @inheritdoc */
-	setBrake(mode: brakeType): void {
+	setBrake(mode: BrakeType): void {
 		this.brakeMode = mode;
 	}
 
 	/** @inheritdoc */
-	setStopping(mode: brakeType): void {
+	setStopping(mode: BrakeType): void {
 		this.brakeMode = mode;
 	}
 
@@ -364,7 +364,7 @@ export class MotorImpl implements Motor, DeviceImpl {
 	}
 
 	/** @inheritdoc */
-	setPosition(value: number, units: rotationUnits): void {
+	setPosition(value: number, units: RotationUnits): void {
 		const currentRealPosition = this.realWorldPosition;
 		const desiredPosition = this.convertRotation(value, units);
 
@@ -373,20 +373,20 @@ export class MotorImpl implements Motor, DeviceImpl {
 	}
 
 	/** @inheritdoc */
-	setTimeout(time: number, units: timeUnits): void {
-		this.timeout = units === timeUnits.sec ? time * 1000 : time;
+	setTimeout(time: number, units: TimeUnits): void {
+		this.timeout = units === TimeUnits.sec ? time * 1000 : time;
 	}
 
 	/** @inheritdoc */
-	spin(dir: directionType): void {
+	spin(dir: DirectionType): void {
 		const directionMultiplier =
-			(dir === directionType.fwd ? 1 : -1) * this.targetVelocity > 0 ? 1 : -1;
+			(dir === DirectionType.fwd ? 1 : -1) * this.targetVelocity > 0 ? 1 : -1;
 		this.targetVelocity = Math.abs(this.targetVelocity) * directionMultiplier;
 		this.isPositionControl = false;
 	}
 
 	/** @inheritdoc */
-	async spinTo(rotation: number, units: rotationUnits, waitForCompletion = true): Promise<boolean> {
+	async spinTo(rotation: number, units: RotationUnits, waitForCompletion = true): Promise<boolean> {
 		const target = this.convertRotation(rotation, units);
 		this.targetPosition = target;
 		this.isPositionControl = true;
@@ -403,13 +403,13 @@ export class MotorImpl implements Motor, DeviceImpl {
 	/** @inheritdoc */
 	async spinFor(
 		rotation: number,
-		units: rotationUnits,
+		units: RotationUnits,
 		waitForCompletion = true
 	): Promise<boolean> {
 		const current = this.getPosition();
 		return this.spinTo(
 			current + this.convertRotation(rotation, units),
-			rotationUnits.deg,
+			RotationUnits.deg,
 			waitForCompletion
 		);
 	}
@@ -435,11 +435,11 @@ export class MotorImpl implements Motor, DeviceImpl {
 	}
 
 	/** @inheritdoc */
-	stop(mode?: brakeType): void {
+	stop(mode?: BrakeType): void {
 		const brakeMode = mode ?? this.brakeMode;
 		this.brakeMode = brakeMode;
 
-		if (brakeMode === brakeType.hold) {
+		if (brakeMode === BrakeType.hold) {
 			this.holdPosition = this.getPosition();
 			this.isPositionControl = true;
 			this.targetPosition = this.holdPosition;
@@ -452,71 +452,71 @@ export class MotorImpl implements Motor, DeviceImpl {
 	}
 
 	/** @inheritdoc */
-	setMaxTorque(value: number, units: percentUnits | torqueUnits | currentUnits): void {
-		if (units === percentUnits.pct) {
+	setMaxTorque(value: number, units: PercentUnits | TorqueUnits | CurrentUnits): void {
+		if (units === PercentUnits.pct) {
 			this.voltageLimit = (value / 100) * this.maxVoltage;
 		}
 		// Torque/current units would require motor constant knowledge
 	}
 
 	/** @inheritdoc */
-	direction(): directionType {
-		return this.measuredVelocity >= 0 ? directionType.fwd : directionType.rev;
+	direction(): DirectionType {
+		return this.measuredVelocity >= 0 ? DirectionType.fwd : DirectionType.rev;
 	}
 
 	/** @inheritdoc */
-	position(units: rotationUnits): number {
+	position(units: RotationUnits): number {
 		const posDeg = this.getPosition();
-		return this.convertRotation(posDeg, rotationUnits.deg, units);
+		return this.convertRotation(posDeg, RotationUnits.deg, units);
 	}
 
 	/** @inheritdoc */
-	velocity(units: velocityUnits | percentUnits): number {
-		if (units === velocityUnits.pct) {
+	velocity(units: VelocityUnits | PercentUnits): number {
+		if (units === VelocityUnits.pct) {
 			return (this.measuredVelocity / this.maxCommandRPM) * 100;
 		}
-		if (units === velocityUnits.rpm) return this.measuredVelocity;
-		if (units === velocityUnits.dps) return this.measuredVelocity * 6;
+		if (units === VelocityUnits.rpm) return this.measuredVelocity;
+		if (units === VelocityUnits.dps) return this.measuredVelocity * 6;
 		return 0;
 	}
 
 	/** @inheritdoc */
-	current(units: currentUnits | percentUnits): number {
+	current(units: CurrentUnits | PercentUnits): number {
 		// Simplified model: current = voltage / resistance
 		const current = this.appliedVoltage / this.resistance;
-		if (units === percentUnits.pct) {
+		if (units === PercentUnits.pct) {
 			return (current / 2.5) * 100; // Assuming 2.5A max
 		}
 		return current;
 	}
 
 	/** @inheritdoc */
-	voltage(units: voltageUnits): number {
-		return units === voltageUnits.volt ? this.appliedVoltage : this.appliedVoltage * 1000;
+	voltage(units: VoltageUnits): number {
+		return units === VoltageUnits.volt ? this.appliedVoltage : this.appliedVoltage * 1000;
 	}
 
 	/** @inheritdoc */
-	power(units: powerUnits): number {
-		return this.appliedVoltage * this.current(currentUnits.amp);
+	power(units: PowerUnits): number {
+		return this.appliedVoltage * this.current(CurrentUnits.amp);
 	}
 
 	/** @inheritdoc */
-	torque(units: torqueUnits): number {
+	torque(units: TorqueUnits): number {
 		// T = Kt * I
-		return this.backEMFConstant * this.current(currentUnits.amp);
+		return this.backEMFConstant * this.current(CurrentUnits.amp);
 	}
 
 	/** @inheritdoc */
-	efficiency(units: percentUnits): number {
+	efficiency(units: PercentUnits): number {
 		// Simplified efficiency calculation
-		return Math.min(100, (this.power(powerUnits.watt) / 10) * 100);
+		return Math.min(100, (this.power(PowerUnits.watt) / 10) * 100);
 	}
 
 	// Helper methods
-	private convertRotation(value: number, from: rotationUnits, to?: rotationUnits): number {
-		const inDegrees = from === rotationUnits.deg ? value : value * 360;
+	private convertRotation(value: number, from: RotationUnits, to?: RotationUnits): number {
+		const inDegrees = from === RotationUnits.deg ? value : value * 360;
 		if (!to) return inDegrees;
-		return to === rotationUnits.deg ? inDegrees : inDegrees / 360;
+		return to === RotationUnits.deg ? inDegrees : inDegrees / 360;
 	}
 
 	/**
@@ -559,7 +559,7 @@ export class MotorImpl implements Motor, DeviceImpl {
 		if (this.targetVelocity === 0 && !this.isPositionControl) {
 			// Handle different brake modes when not in position control
 			switch (this.brakeMode) {
-				case brakeType.brake:
+				case BrakeType.brake:
 					// Dynamic braking using H-bridge short circuit
 					const currentVelocity = this.measuredVelocity;
 					const brakingCurrent = (Math.abs(currentVelocity) / this.maxCommandRPM) * 1; // 1A max braking current
@@ -567,13 +567,13 @@ export class MotorImpl implements Motor, DeviceImpl {
 					voltage = -currentVelocity * this.resistance * brakingCurrent;
 					break;
 
-				case brakeType.hold:
+				case BrakeType.hold:
 					// Switch to position control at current position
 					this.isPositionControl = true;
 					this.targetPosition = this.getPosition();
 					break;
 
-				case brakeType.coast:
+				case BrakeType.coast:
 					// Let back EMF and friction slow down the motor
 					voltage = 0;
 					break;
@@ -600,7 +600,7 @@ export class MotorImpl implements Motor, DeviceImpl {
 		let torque = this.backEMFConstant * current;
 
 		// Add braking torque if active
-		if (this.brakeMode === brakeType.brake && this.targetVelocity === 0) {
+		if (this.brakeMode === BrakeType.brake && this.targetVelocity === 0) {
 			torque -= Math.sign(angularVelocity) * brakingTorque;
 		}
 
@@ -616,7 +616,7 @@ export class MotorImpl implements Motor, DeviceImpl {
 		this.calculatedVelocity += ((acceleration * 60) / (2 * Math.PI)) * dt;
 
 		// Apply hold position stiffness
-		if (this.brakeMode === brakeType.hold && this.holdPosition !== null) {
+		if (this.brakeMode === BrakeType.hold && this.holdPosition !== null) {
 			const positionError = this.holdPosition - this.getPosition();
 			this.calculatedVelocity += positionError * 0.1; // Simple P control for holding
 		}
