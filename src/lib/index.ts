@@ -2,5 +2,6 @@
 
 export * from './Canvas';
 export * from './Coordinate';
+export * from './Hardware.svelte';
 export * from './Math';
 export * from './Vector';

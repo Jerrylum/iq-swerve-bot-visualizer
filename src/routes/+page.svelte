@@ -10,10 +10,11 @@
 		rotationUnits,
 		velocityUnits
 	} from '$lib/Hardware.svelte';
-	// import type { Motor} from '$components/SwerveModule.svelte';
 
-	let leftJoystickPos: Coordinate = $state({ x: 0, y: 0 });
-	let rightJoystickPos: Coordinate = $state({ x: 0, y: 0 });
+	interface SwerveModuleUpdate {
+		steerAngle: number;
+		driveVelocity: number;
+	}
 
 	/**
 	 * The moment of inertia of a uniformly distributed solid cylinder rotating about its central axis.
@@ -41,6 +42,12 @@
 	const m12 = new MotorImpl(12, driveInertia);
 	const m9 = new MotorImpl(9, steeringInertia);
 
+	let leftJoystickPos: Coordinate = $state({ x: 0, y: 0 });
+	let rightJoystickPos: Coordinate = $state({ x: 0, y: 0 });
+
+	let leftSwerveModuleValues: SwerveModuleUpdate = $state({ steerAngle: 0, driveVelocity: 0 });
+	let rightSwerveModuleValues: SwerveModuleUpdate = $state({ steerAngle: 0, driveVelocity: 0 });
+
 	m3.setBrake(brakeType.coast);
 
 	$effect(() => {
@@ -65,9 +72,9 @@
 <!-- Swerve Bot Visualizer -->
 
 <div class="flex h-screen w-full items-center justify-center">
-	<Stage width={800} height={300} staticConfig={true}>
+	<Stage width={800} height={400} staticConfig={true}>
 		<Layer>
-			<Rect x={0} y={0} width={800} height={300} fill="#EEE" />
+			<Rect x={0} y={0} width={800} height={400} fill="#EEE" />
 			<Group x={40} y={40}>
 				<Text x={0} y={0} text="Left Joystick" fontSize={20} />
 				<Joystick x={0} y={40} update={(pos) => (leftJoystickPos = pos)} />
@@ -89,6 +96,20 @@
 					steerMotor={m3}
 					steerReversed={true}
 					steerRatio={5}
+					update={(steerAngle, driveVelocity) =>
+						(leftSwerveModuleValues = { steerAngle, driveVelocity })}
+				/>
+				<Text
+					x={0}
+					y={240}
+					text={`Steer Angle: ${leftSwerveModuleValues.steerAngle.toFixed(2)}`}
+					fontSize={16}
+				/>
+				<Text
+					x={0}
+					y={260}
+					text={`Drive Velocity: ${leftSwerveModuleValues.driveVelocity.toFixed(2)}`}
+					fontSize={16}
 				/>
 			</Group>
 			<Group x={580} y={40}>
@@ -100,6 +121,20 @@
 					steerMotor={m9}
 					steerReversed={true}
 					steerRatio={5}
+					update={(steerAngle, driveVelocity) =>
+						(rightSwerveModuleValues = { steerAngle, driveVelocity })}
+				/>
+				<Text
+					x={0}
+					y={240}
+					text={`Steer Angle: ${rightSwerveModuleValues.steerAngle.toFixed(2)}`}
+					fontSize={16}
+				/>
+				<Text
+					x={0}
+					y={260}
+					text={`Drive Velocity: ${rightSwerveModuleValues.driveVelocity.toFixed(2)}`}
+					fontSize={16}
 				/>
 			</Group>
 		</Layer>

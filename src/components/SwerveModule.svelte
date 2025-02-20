@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { clamp } from '$lib';
-	import { velocityUnits, voltageUnits, type MotorImpl } from '$lib/Hardware.svelte';
-	import { Group, Circle, Line, Arrow } from 'svelte-konva';
+	import type { MotorImpl } from '$lib';
+	import { Group, Circle, Arrow } from 'svelte-konva';
 
 	const {
 		x: rootX,
@@ -9,7 +9,8 @@
 		driveMotor,
 		steerMotor,
 		steerReversed,
-		steerRatio
+		steerRatio,
+		update
 	}: {
 		x: number;
 		y: number;
@@ -17,11 +18,13 @@
 		steerMotor: MotorImpl;
 		steerReversed: boolean;
 		steerRatio: number;
+		update: (steerAngle: number, driveVelocity: number) => void;
 	} = $props();
 
 	const swerveModuleOuterRadius = 90;
 	const swerveModuleInnerRadius = swerveModuleOuterRadius * 0.4;
 	let steerAngle = $state(0);
+	let driveVelocity = $state(0);
 	let driveVelocityPct = $state(0);
 	$effect(() => {
 		// console.log(
@@ -35,10 +38,13 @@
 
 		steerAngle = turnableBasePosition % 360;
 
-		const driveMotorVelocity = driveMotor.getVelocity();
-		const driveMotorVelocityPct = clamp(driveMotorVelocity / 120, -1, 1);
+		driveVelocity = driveMotor.getVelocity();
 
-		driveVelocityPct = Math.abs(driveMotorVelocityPct) > 0.05 ? driveMotorVelocityPct : 0;
+		const driveMotorVelocityPct = clamp(driveVelocity / 120, -1, 1);
+
+		driveVelocityPct = Math.abs(driveMotorVelocityPct) > 0.02 ? driveMotorVelocityPct : 0;
+
+		update(steerAngle, driveVelocity);
 	});
 </script>
 
@@ -49,56 +55,10 @@
 		radius={swerveModuleOuterRadius}
 		stroke="#000"
 	/>
-	<!-- draw a line in the middle width =10 -->
-	<!-- <Line
-		x={swerveModuleOuterRadius}
-		y={swerveModuleOuterRadius}
-		strokeWidth={30}
-		stroke="#000"
-		points={[0, 0, 0, swerveModuleInnerRadius * 2]}
-		offsetY={swerveModuleInnerRadius}
-		rotation={0}
-		tension={1}
-		lineCap="round"
-	/> -->
-
-	<!-- <Line
-		x={swerveModuleOuterRadius}
-		y={swerveModuleOuterRadius}
-		strokeWidth={30}
-		stroke="#000"
-		points={[0, 0, 0, swerveModuleInnerRadius * 2]}
-		pointerLength={20}
-		pointerWidth={20}
-		offsetY={swerveModuleInnerRadius}
-		rotation={40}
-		tension={1}
-		lineCap="round"
-	/> -->
-	<!-- <Arrow
-		x={swerveModuleOuterRadius}
-		y={swerveModuleOuterRadius}
-		strokeWidth={25 + Math.abs(driveVelocityPct) * 7}
-		stroke="#000"
-		points={[
-			0,
-			0,
-			0,
-			swerveModuleInnerRadius * 2 + (driveVelocityPct > 0 ? driveVelocityPct * 7 : 0)
-		]}
-		pointerLength={Math.abs(driveVelocityPct) * 7}
-		pointerWidth={Math.abs(driveVelocityPct) * 7}
-		pointerAtBeginning={driveVelocityPct > 0}
-		pointerAtEnding={driveVelocityPct < 0}
-		offsetY={swerveModuleInnerRadius}
-		rotation={steerAngle}
-		tension={1}
-		lineCap="round"
-	/> -->
 	<Arrow
 		x={swerveModuleOuterRadius}
 		y={swerveModuleOuterRadius}
-		strokeWidth={25 + Math.abs(driveVelocityPct) * 3.5}
+		strokeWidth={25}
 		stroke="#000"
 		points={[
 			0,
@@ -115,19 +75,4 @@
 		tension={1}
 		lineCap="round"
 	/>
-	<!-- <Arrow
-		x={swerveModuleOuterRadius}
-		y={swerveModuleOuterRadius}
-		strokeWidth={30}
-		stroke="#000"
-		points={[0, 0, 0, swerveModuleInnerRadius * 2 + 5]}
-		pointerLength={5}
-		pointerWidth={5}
-		pointerAtBeginning={true}
-		pointerAtEnding={false}
-		offsetY={swerveModuleInnerRadius}
-		rotation={steerAngle}
-		tension={1}
-		lineCap="round"
-	/> -->
 </Group>
