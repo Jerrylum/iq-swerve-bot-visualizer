@@ -45,16 +45,17 @@
 
 	$effect(() => {
 		// m1.setTargetVelocity(leftJoystickPos.x * 100);
-		m3.setVelocity((leftJoystickPos.y / 100) * 140, velocityUnits.rpm);
-		m3.spin(directionType.fwd);
+		m6.setVelocity((leftJoystickPos.y / 100) * 140, velocityUnits.rpm);
+		m6.spin(directionType.fwd);
 		// m3.setTargetVelocity(rightJoystickPos.x * 100);
 		// m4.setTargetVelocity(rightJoystickPos.y * 100);
-		// console.log(m2.getTargetVelocity());
+		console.log(m6.getTargetVelocity(), m6.getVelocity());
 		// m3.spinTo(180, rotationUnits.deg, true);
 	});
 
 	setInterval(() => {
 		m3.loop();
+		m6.loop();
 	}, 20);
 </script>
 
@@ -81,11 +82,25 @@
 			</Group>
 			<Group x={360} y={40}>
 				<Text x={0} y={0} text="Left Swerve Drive" fontSize={20} />
-				<SwerveModule x={0} y={40} driveMotor={m6} steerMotor={m3} />
+				<SwerveModule
+					x={0}
+					y={40}
+					driveMotor={m6}
+					steerMotor={m3}
+					steerReversed={true}
+					steerRatio={5}
+				/>
 			</Group>
 			<Group x={580} y={40}>
 				<Text x={0} y={0} text="Right Swerve Drive" fontSize={20} />
-				<SwerveModule x={0} y={40} driveMotor={m12} steerMotor={m9} />
+				<SwerveModule
+					x={0}
+					y={40}
+					driveMotor={m12}
+					steerMotor={m9}
+					steerReversed={true}
+					steerRatio={5}
+				/>
 			</Group>
 		</Layer>
 	</Stage>
