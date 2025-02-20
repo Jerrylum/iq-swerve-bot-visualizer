@@ -4,6 +4,7 @@
 	import type { Coordinate } from '$lib';
 	import SwerveModule from '$components/SwerveModule.svelte';
 	import {
+		AxisType,
 		BrakeType,
 		ContextImpl,
 		DeviceType,
@@ -12,6 +13,7 @@
 		RotationUnits,
 		VelocityUnits
 	} from '$lib/Hardware.svelte';
+	import * as usercode from '$lib/Usercode';
 
 	interface SwerveModuleUpdate {
 		steerAngle: number;
@@ -40,6 +42,7 @@
 	const driveInertia: number = 1e-3; // Unit: kg·m²
 
 	const context = new ContextImpl();
+	const controller = context.getController();
 
 	const m6 = new MotorImpl(6, driveInertia);
 	const m3 = new MotorImpl(3, steeringInertia);
@@ -51,6 +54,7 @@
 	context.addDevice(m12);
 	context.addDevice(m9);
 	context.run();
+	usercode.main(context);
 
 	let leftJoystickPos: Coordinate = $state({ x: 0, y: 0 });
 	let rightJoystickPos: Coordinate = $state({ x: 0, y: 0 });
@@ -58,16 +62,13 @@
 	let leftSwerveModuleValues: SwerveModuleUpdate = $state({ steerAngle: 0, driveVelocity: 0 });
 	let rightSwerveModuleValues: SwerveModuleUpdate = $state({ steerAngle: 0, driveVelocity: 0 });
 
-	m3.setBrake(BrakeType.coast);
+	// m3.setBrake(BrakeType.coast);
 
 	$effect(() => {
-		// m1.setTargetVelocity(leftJoystickPos.x * 100);
-		m6.setVelocity((leftJoystickPos.y / 100) * 140, VelocityUnits.rpm);
-		m6.spin(DirectionType.fwd);
-		// m3.setTargetVelocity(rightJoystickPos.x * 100);
-		// m4.setTargetVelocity(rightJoystickPos.y * 100);
-		console.log(m6.getTargetVelocity(), m6.getVelocity());
-		// m3.spinTo(180, rotationUnits.deg, true);
+		controller.setValue(AxisType.AxisA, leftJoystickPos.y);
+		controller.setValue(AxisType.AxisB, leftJoystickPos.x);
+		controller.setValue(AxisType.AxisC, rightJoystickPos.x);
+		controller.setValue(AxisType.AxisD, rightJoystickPos.y);
 	});
 </script>
 

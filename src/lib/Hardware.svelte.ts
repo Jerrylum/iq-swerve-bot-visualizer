@@ -258,6 +258,17 @@ export interface Motor extends Device {
 	efficiency(units: PercentUnits): number;
 }
 
+export enum AxisType {
+	AxisA = 'AxisA',
+	AxisB = 'AxisB',
+	AxisC = 'AxisC',
+	AxisD = 'AxisD'
+}
+
+export interface Controller {
+	getValue(axis: AxisType): number;
+}
+
 export interface Context {
 	/**
 	 * Gets a device from the context
@@ -265,6 +276,11 @@ export interface Context {
 	 * @param type The type of device to get
 	 */
 	getDevice<T extends DeviceType>(port: number, type: T): SupportedDevices[T];
+
+	/**
+	 * @returns The controller instance
+	 */
+	getController(): Controller;
 }
 
 export interface DeviceImpl extends Device {
@@ -680,15 +696,33 @@ export class MotorImpl implements Motor, DeviceImpl {
 	}
 }
 
+export class ControllerImpl implements Controller {
+	private readonly axes: {
+		[key in AxisType]: number;
+	} = {
+		[AxisType.AxisA]: 0,
+		[AxisType.AxisB]: 0,
+		[AxisType.AxisC]: 0,
+		[AxisType.AxisD]: 0
+	};
 
+	constructor() {}
+
+	public getValue(axis: AxisType): number {
+		return this.axes[axis];
+	}
+
+	public setValue(axis: AxisType, value: number) {
+		this.axes[axis] = Math.round(clamp(value, -100, 100));
+	}
+}
 
 export class ContextImpl implements Context {
 	private readonly devices: {
 		[key: number]: SupportedDeviceImpl;
 	} = {};
 	private runningInterval: number | null = null;
-
-	constructor() {}
+	private controller: ControllerImpl = new ControllerImpl();
 
 	/**
 	 * Adds a device to the context
@@ -707,6 +741,13 @@ export class ContextImpl implements Context {
 		if (!device) throw new Error(`Device not found on port ${port}`);
 		if (device.type !== type) throw new Error(`Device on port ${port} is not of type ${type}`);
 		return device;
+	}
+
+	/**
+	 * @returns The controller instance
+	 */
+	public getController(): ControllerImpl {
+		return this.controller;
 	}
 
 	/**
