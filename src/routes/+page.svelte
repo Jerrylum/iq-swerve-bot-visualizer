@@ -50,6 +50,7 @@
 	context.addDevice(m3);
 	context.addDevice(m12);
 	context.addDevice(m9);
+	context.run();
 
 	let leftJoystickPos: Coordinate = $state({ x: 0, y: 0 });
 	let rightJoystickPos: Coordinate = $state({ x: 0, y: 0 });
@@ -68,11 +69,6 @@
 		console.log(m6.getTargetVelocity(), m6.getVelocity());
 		// m3.spinTo(180, rotationUnits.deg, true);
 	});
-
-	setInterval(() => {
-		m3.loop();
-		m6.loop();
-	}, 20);
 </script>
 
 <!-- <h1>Welcome to SvelteKit</h1>

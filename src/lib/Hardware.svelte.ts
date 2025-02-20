@@ -102,9 +102,13 @@ export enum DeviceType {
 	Motor = 'Motor'
 }
 
-export type SupportedDevice = {
+export type SupportedDevices = {
 	[DeviceType.Motor]: Motor;
 };
+
+export type SupportedDevice = SupportedDevices[keyof SupportedDevices];
+
+export type SupportedDeviceImpl = SupportedDevice & DeviceImpl;
 
 export interface Device {
 	readonly type: DeviceType;
@@ -255,10 +259,22 @@ export interface Motor extends Device {
 }
 
 export interface Context {
-	getDevice<T extends DeviceType>(port: number, type: T): SupportedDevice[T];
+	/**
+	 * Gets a device from the context
+	 * @param port The port number of the device
+	 * @param type The type of device to get
+	 */
+	getDevice<T extends DeviceType>(port: number, type: T): SupportedDevices[T];
 }
 
-export class MotorImpl implements Motor {
+export interface DeviceImpl extends Device {
+	/**
+	 * @description Updates the device's state
+	 */
+	loop(): void;
+}
+
+export class MotorImpl implements Motor, DeviceImpl {
 	readonly type = DeviceType.Motor;
 
 	private readonly maxVoltage: number = 7.2; // Max allowed voltage
@@ -503,7 +519,9 @@ export class MotorImpl implements Motor {
 		return to === rotationUnits.deg ? inDegrees : inDegrees / 360;
 	}
 
-	// Updated loop function with dual PID
+	/**
+	 * @inheritdoc
+	 */
 	public loop() {
 		const now = Date.now();
 		const dt = (now - this.lastUpdateTime) / 1000; // Convert to seconds
@@ -614,46 +632,105 @@ export class MotorImpl implements Motor {
 		}
 	}
 
+	/**
+	 * @returns The target velocity of the motor
+	 */
 	public getTargetVelocity(): number {
 		return this.targetVelocity;
 	}
 
+	/**
+	 * @returns The target position of the motor
+	 */
+	public getTargetPosition(): number | null {
+		return this.targetPosition;
+	}
+
+	/**
+	 * @returns Whether the motor is reversed
+	 */
 	public isReversed() {
 		return this.reverse;
 	}
 
+	/**
+	 * @returns The measured velocity of the motor, same as velocity(velocityUnits.rpm)
+	 */
 	public getVelocity() {
 		return this.measuredVelocity;
 	}
 
+	/**
+	 * @returns The position of the motor, same as position(rotationUnits.deg)
+	 */
 	public getPosition(): number {
 		const rawPosition = this.realWorldPosition - this.zeroPosition;
 		return rawPosition * (this.reverse ? -1 : 1);
 	}
 
+	/**
+	 * Returns the real world position of the motor,
+	 * when the motor is not reversed, the real world position is the same as the position
+	 * when the motor is reversed, the real world position is the same as the position * -1
+	 *
+	 * @returns The real world position of the motor
+	 */
 	public getRealWorldPosition() {
 		return this.realWorldPosition;
 	}
 }
 
+
+
 export class ContextImpl implements Context {
 	private readonly devices: {
-		[key: number]: Device;
+		[key: number]: SupportedDeviceImpl;
 	} = {};
+	private runningInterval: number | null = null;
 
 	constructor() {}
 
-	public addDevice(device: Device) {
+	/**
+	 * Adds a device to the context
+	 * @param device The device to add
+	 */
+	public addDevice(device: SupportedDeviceImpl) {
 		if (this.devices[device.port]) {
 			throw new Error(`Device already exists on port ${device.port}`);
 		}
 		this.devices[device.port] = device;
 	}
 
-	public getDevice<T extends DeviceType>(port: number, type: T): SupportedDevice[T] {
+	/** @inheritdoc */
+	public getDevice<T extends DeviceType>(port: number, type: T): SupportedDevices[T] {
 		const device = this.devices[port];
 		if (!device) throw new Error(`Device not found on port ${port}`);
 		if (device.type !== type) throw new Error(`Device on port ${port} is not of type ${type}`);
-		return device as SupportedDevice[T];
+		return device;
+	}
+
+	/**
+	 * Runs the context, this will call the loop method on all devices in the context every 20ms
+	 *
+	 * @throws Error if the context is already running
+	 */
+	public run() {
+		if (this.runningInterval) throw new Error('Context is already running');
+		this.runningInterval = setInterval(() => {
+			for (const device of Object.values(this.devices)) {
+				device.loop();
+			}
+		}, 20); // 20ms = 50Hz
+	}
+
+	/**
+	 * Stops the context, this will stop the loop method on all devices in the context
+	 *
+	 * @throws Error if the context is not running
+	 */
+	public stop() {
+		if (!this.runningInterval) throw new Error('Context is not running');
+		clearInterval(this.runningInterval);
+		this.runningInterval = null;
 	}
 }
