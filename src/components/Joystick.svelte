@@ -44,8 +44,13 @@
 		const outputX = clamp(pos.x / (joystickOuterRadius * 0.72), -1, 1);
 		const outputY = -1 * clamp(pos.y / (joystickOuterRadius * 0.72), -1, 1);
 
-		joystickOutputX = deadband(Math.round(outputX * 100), 10);
-		joystickOutputY = deadband(Math.round(outputY * 100), 10);
+		if (Math.abs(outputX) + Math.abs(outputY) > 0.1) {
+			joystickOutputX = Math.round(outputX * 100);
+			joystickOutputY = Math.round(outputY * 100);
+		} else {
+			joystickOutputX = 0;
+			joystickOutputY = 0;
+		}
 
 		update({ x: joystickOutputX, y: joystickOutputY });
 	};
