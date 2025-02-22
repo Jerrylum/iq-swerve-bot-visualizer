@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { getLocalXY, clamp, Vector, type Coordinate, deadband } from '$lib';
+	import { getLocalXY, clamp, Vector, type Coordinate } from '$lib';
 	import { Group, Circle } from 'svelte-konva';
 	import type { KonvaDragTransformEvent } from 'svelte-konva';
 
