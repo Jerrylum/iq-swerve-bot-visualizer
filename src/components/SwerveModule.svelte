@@ -3,6 +3,21 @@
 	import type { MotorImpl } from '$lib';
 	import { Group, Circle, Arrow } from 'svelte-konva';
 
+	export type SwerveModuleUpdate = {
+		steerAngle: number;
+		driveVelocity: number;
+	};
+
+	export interface SwerveModuleProps {
+		x: number;
+		y: number;
+		driveMotor: MotorImpl;
+		steerMotor: MotorImpl;
+		steerReversed: boolean;
+		steerRatio: number;
+		update: (steerAngle: number, driveVelocity: number) => void;
+	}
+
 	const {
 		x: rootX,
 		y: rootY,
@@ -11,15 +26,7 @@
 		steerReversed,
 		steerRatio,
 		update
-	}: {
-		x: number;
-		y: number;
-		driveMotor: MotorImpl;
-		steerMotor: MotorImpl;
-		steerReversed: boolean;
-		steerRatio: number;
-		update: (steerAngle: number, driveVelocity: number) => void;
-	} = $props();
+	}: SwerveModuleProps = $props();
 
 	const swerveModuleOuterRadius = 90;
 	const swerveModuleInnerRadius = swerveModuleOuterRadius * 0.4;

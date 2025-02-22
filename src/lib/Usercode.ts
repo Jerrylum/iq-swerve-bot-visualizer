@@ -205,33 +205,60 @@ class SwerveModule {
 export async function main(context: Context) {
 	const controller = context.getController();
 
-	const leftDriveMotor = context.getDevice(6, DeviceType.Motor);
-	const leftSteerMotor = context.getDevice(3, DeviceType.Motor);
-	const rightDriveMotor = context.getDevice(12, DeviceType.Motor);
-	const rightSteerMotor = context.getDevice(9, DeviceType.Motor);
+	const leftFrontDriveMotor = context.getDevice(6, DeviceType.Motor);
+	const leftFrontSteerMotor = context.getDevice(3, DeviceType.Motor);
+	const rightFrontDriveMotor = context.getDevice(12, DeviceType.Motor);
+	const rightFrontSteerMotor = context.getDevice(9, DeviceType.Motor);
+	const leftBackDriveMotor = context.getDevice(2, DeviceType.Motor);
+	const leftBackSteerMotor = context.getDevice(1, DeviceType.Motor);
+	const rightBackDriveMotor = context.getDevice(8, DeviceType.Motor);
+	const rightBackSteerMotor = context.getDevice(7, DeviceType.Motor);
 
-	const leftSwerveModule = new SwerveModule(leftSteerMotor, 5, true, leftDriveMotor, false, 1, 45);
-	const rightSwerveModule = new SwerveModule(
-		rightSteerMotor,
+	const leftFrontSwerveModule = new SwerveModule(
+		leftFrontSteerMotor,
 		5,
 		true,
-		rightDriveMotor,
+		leftFrontDriveMotor,
+		false,
+		1,
+		45
+	);
+	const rightFrontSwerveModule = new SwerveModule(
+		rightFrontSteerMotor,
+		5,
+		true,
+		rightFrontDriveMotor,
 		false,
 		1,
 		135
 	);
+	const leftBackSwerveModule = new SwerveModule(
+		leftBackSteerMotor,
+		5,
+		true,
+		leftBackDriveMotor,
+		false,
+		1,
+		-45
+	);
+	const rightBackSwerveModule = new SwerveModule(
+		rightBackSteerMotor,
+		5,
+		true,
+		rightBackDriveMotor,
+		false,
+		1,
+		-135
+	);
 
 	setInterval(() => {
-		// All values are in the [-1, 1] range
 		const x1 = controller.getValue(AxisType.AxisB) / 100;
 		const y1 = controller.getValue(AxisType.AxisA) / 100;
 		const x2 = controller.getValue(AxisType.AxisC) / 100;
 
-		leftSwerveModule.operate(x1, y1, x2, 0);
-		rightSwerveModule.operate(x1, y1, x2, 0);
-
-		// leftSteerMotor.setVelocity(y1 * 140, VelocityUnits.rpm);
-		// leftSteerMotor.spin(DirectionType.fwd);
-		// console.log(x1, y1);
+		leftFrontSwerveModule.operate(x1, y1, x2, 0);
+		rightFrontSwerveModule.operate(x1, y1, x2, 0);
+		leftBackSwerveModule.operate(x1, y1, x2, 0);
+		rightBackSwerveModule.operate(x1, y1, x2, 0);
 	}, 10);
 }
