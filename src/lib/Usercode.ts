@@ -60,32 +60,45 @@ export function toDerivativeHeading(original: number, target: number): number {
 }
 
 /**
- * Calculates the shortest turn needed to turn from an original heading to a target heading.
+ * Calculates the optimal wheel rotation to reach a target heading using minimal movement.
+ * Considers both maintaining current direction and flipping direction to find the shortest path.
  *
- * For example, if the current heading is 0 degrees and the target heading is 90 degrees, the shortest turn is 90 degrees clockwise.
- * If the current heading is 0 degrees and the target heading is 135 degrees, the shortest turn is 45 degrees counter-clockwise and the direction is reversed.
- *
- * @param currentPos The current heading in degrees
- * @param currentDirection The current wheel direction
- * @param targetHeading The target heading in degrees [0, 360)
- * @returns The new target position and the wheel direction
+ * @param currentPos - Current encoder position in degrees (not bounded to 360)
+ * @param currentDirection - Current rotation direction (1 = forward, -1 = reversed)
+ * @param targetHeading - Desired heading to face in degrees [0, 360)
+ * @returns Object containing new target encoder position and optimal direction
  */
 export function shortestTurn(
 	currentPos: number,
 	currentDirection: 1 | -1,
 	targetHeading: number
 ): { pos: number; direction: 1 | -1 } {
-	const high = 360;
-	const half = high / 2;
-	const quarter = high / 4;
+	// Calculate effective heading considering current direction and position
+	const currentHeading = boundHeading(currentPos + (currentDirection === -1 ? 180 : 0));
 
-	const currentHeading = boundHeading(currentPos + (currentDirection == -1 ? half : 0));
-	const delta = (targetHeading - currentHeading + high) % high; // how many degrees to turn to the target heading
+	// Calculate minimal turn angle in [-180, 180) range using modular arithmetic:
+	// 1. Add 180 to shift the modulus window
+	// 2. Apply modulo 360 to wrap around the circle
+	// 3. Subtract 180 to center on zero
+	// This converts heading difference to shortest angular distance with direction
+	const deltaDerivative = ((targetHeading - currentHeading + 180) % 360) - 180;
 
-	if (delta > quarter && delta < high - quarter) {
-		return { pos: currentPos + delta - half, direction: (-1 * currentDirection) as 1 | -1 };
+	if (Math.abs(deltaDerivative) > 90) {
+		// When turn exceeds 90° absolute, flip direction for shorter path:
+		// - Change rotation direction
+		// - Adjust position by delta minus 180° in the turn direction
+		// Math.sign() ensures we subtract/add 180 based on turn direction
+		return {
+			pos: currentPos + (deltaDerivative - 180 * Math.sign(deltaDerivative)),
+			direction: -currentDirection as 1 | -1
+		};
 	} else {
-		return { pos: currentPos + (delta > half ? delta - high : delta), direction: currentDirection };
+		// For turns <= 90° absolute, maintain current direction:
+		// Simply add the calculated delta to current position
+		return {
+			pos: currentPos + deltaDerivative,
+			direction: currentDirection
+		};
 	}
 }
 
