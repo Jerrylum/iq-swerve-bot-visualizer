@@ -43,23 +43,6 @@ export function toHeading(x: number, y: number): number {
 }
 
 /**
- * Calculates the derivative heading needed to turn from an original heading to a target heading.
- * The derivative heading is the shortest angle between the two headings, which can be positive or negative.
- * @param original The original heading in degrees [0, 360)
- * @param target The target heading in degrees [0, 360)
- * @returns The derivative heading in degrees (-180, 180]
- */
-export function toDerivativeHeading(original: number, target: number): number {
-	const high = 360;
-	const half = high / 2;
-
-	const targetHeading = target % high;
-	const delta = (original - targetHeading + high) % high;
-
-	return delta > half ? high - delta : -delta;
-}
-
-/**
  * Calculates the optimal wheel rotation to reach a target heading using minimal movement.
  * Considers both maintaining current direction and flipping direction to find the shortest path.
  *
@@ -199,6 +182,7 @@ class SwerveModule {
 			this.steerTargetPos = pos;
 			this.direction = direction;
 		}
+		// If the joystick is centered, don't update the steering target position
 
 		const steerTargetEnc = this.steerTargetPos * this.steerRatio;
 		const steerError = steerTargetEnc - steerEnc;
