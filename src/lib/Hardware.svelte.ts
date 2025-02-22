@@ -620,7 +620,7 @@ export class MotorImpl implements Motor, DeviceImpl {
 			torque -= Math.sign(angularVelocity) * brakingTorque;
 		}
 
-		// Update physics with better friction model
+		// Calculate friction torque
 		const frictionTorque =
 			dt *
 			Math.sign(angularVelocity) *
