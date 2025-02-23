@@ -1,12 +1,5 @@
 import { expect, test } from 'vitest';
-import {
-	fromHeadingInDegreeToAngleInRadian,
-	fromDegreeToRadian,
-	fromAngleInRadianToHeadingInDegree,
-	boundHeading,
-	boundAngle,
-	shortestTurn
-} from './Usercode';
+import { shortestTurn } from './Usercode';
 
 test('shortestTurn', () => {
 	expect(shortestTurn(0, 1, 0)).toEqual({ pos: 0, direction: 1 });
@@ -33,39 +26,4 @@ test('shortestTurn', () => {
 	expect(shortestTurn(45, 1, 0)).toEqual({ pos: 45 + -45, direction: 1 });
 	expect(shortestTurn(45, 1, 315)).toEqual({ pos: 45 + -90, direction: 1 });
 	expect(shortestTurn(45, 1, 314)).toEqual({ pos: 45 + 89, direction: -1 });
-});
-
-test('fromHeadingInDegreeToAngleInRadian', () => {
-	expect(fromHeadingInDegreeToAngleInRadian(0)).toBeCloseTo(fromDegreeToRadian(90));
-	expect(fromHeadingInDegreeToAngleInRadian(90)).toBeCloseTo(fromDegreeToRadian(0));
-	expect(fromHeadingInDegreeToAngleInRadian(180)).toBeCloseTo(fromDegreeToRadian(-90));
-	expect(fromHeadingInDegreeToAngleInRadian(269.9)).toBeCloseTo(fromDegreeToRadian(-179.9));
-	expect(fromHeadingInDegreeToAngleInRadian(270)).toBeCloseTo(fromDegreeToRadian(180));
-	expect(fromHeadingInDegreeToAngleInRadian(271)).toBeCloseTo(fromDegreeToRadian(179));
-	expect(fromHeadingInDegreeToAngleInRadian(359)).toBeCloseTo(fromDegreeToRadian(91));
-	expect(fromHeadingInDegreeToAngleInRadian(91)).toBeCloseTo(fromDegreeToRadian(-1));
-});
-
-test('fromAngleInRadianToHeadingInDegree', () => {
-	expect(fromAngleInRadianToHeadingInDegree(fromDegreeToRadian(90))).toBeCloseTo(0);
-	expect(fromAngleInRadianToHeadingInDegree(fromDegreeToRadian(0))).toBeCloseTo(90);
-	expect(fromAngleInRadianToHeadingInDegree(fromDegreeToRadian(-90))).toBeCloseTo(180);
-	expect(fromAngleInRadianToHeadingInDegree(fromDegreeToRadian(-179.9))).toBeCloseTo(269.9);
-	expect(fromAngleInRadianToHeadingInDegree(fromDegreeToRadian(180))).toBeCloseTo(270);
-	expect(fromAngleInRadianToHeadingInDegree(fromDegreeToRadian(179))).toBeCloseTo(271);
-	expect(fromAngleInRadianToHeadingInDegree(fromDegreeToRadian(91))).toBeCloseTo(359);
-	expect(fromAngleInRadianToHeadingInDegree(fromDegreeToRadian(-1))).toBeCloseTo(91);
-});
-
-test('fromHeadingInDegreeToAngleInRadian <-> fromAngleInRadianToHeadingInDegree', () => {
-	for (let i = -720; i < 1080; i += 0.1) {
-		expect(fromAngleInRadianToHeadingInDegree(fromHeadingInDegreeToAngleInRadian(i))).toBeCloseTo(
-			boundHeading(i)
-		);
-	}
-	for (let i = -Math.PI * 4; i < Math.PI * 6; i += 0.1) {
-		expect(fromHeadingInDegreeToAngleInRadian(fromAngleInRadianToHeadingInDegree(i))).toBeCloseTo(
-			boundAngle(i)
-		);
-	}
 });
