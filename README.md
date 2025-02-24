@@ -6,14 +6,16 @@ An interactive web-based visualization tool for understanding swerve drive kinem
 
 ![Swerve Bot Visualizer Interface](references/visualizer-screenshot.png)
 
+A 2-module swerve bot:
+
+![A picture of a 2-module swerve bot](references/two-module-swerve-bot.jpeg)
+
 ## Features
 
 - **Real-time vector visualization** of wheel direction and velocity
 - **Dynamic module states** showing steering angles and drive speeds
 - **Field-centric control** simulation with dual joystick input
 - **Physics-based motor models** with inertia and voltage simulation
-- **Optimal path calculation** for wheel rotation (≤90° turns)
-- **4-module configuration** with positional awareness
 
 ## Live Demo
 
@@ -62,9 +64,7 @@ Where:
 
 ### Optimal Wheel Rotation Mathematics
 
-<!-- The `shortestTurn` algorithm ensures minimal angular movement through intelligent direction reversal. -->
-
-The swerve drive module will always turn the shortest path to the target heading. For example, if the module is facing 0 degrees and the target heading is 135 degrees, it will turn left 45 degrees to get to 45 degrees, then reverse the wheel direction, ensuring minimal movement. Given:
+The swerve drive module will always turn via the shortest path to the target heading. For example, if the module is facing 0 degree and the target heading is 135 degrees, it will turn left 45 degrees to get to 45 degrees, then reverse the wheel direction, ensuring minimal movement. Given:
 
 - Current encoder position: $p_c \in \mathbb{R}$ (unbounded degrees)
 - Current movement direction: $`d_c \in \{-1, 1\}`$
@@ -78,8 +78,8 @@ $$ h_c = (p_c + 90 \cdot (1 - d_c)) \mod 360 $$
 
 Where $`d_c \in \{-1,1\}`$ simplifies direction handling:
 
-- $`d_c = 1$: $h_c = p_c \mod 360`$
-- $`d_c = -1$: $h_c = (p_c + 180) \mod 360`$
+- $d_c = 1$: $h_c = p_c \mod 360$
+- $d_c = -1$: $h_c = (p_c + 180) \mod 360$
 
 **Angular Delta Calculation** using modular arithmetic:
 
@@ -115,11 +115,11 @@ Where:
 - $x, y$: Normalized translation inputs $[-1, 1]$
 - $\omega$: Normalized rotation input $[-1, 1]$
 - $v_{\text{max}}$: Maximum motor velocity (140 RPM)
-- $d \in \{-1, 1\}$: Direction from the previous step
+- $`d \in \{-1, 1\}`$: Direction from the previous step
 
 ## System Architecture
 
-The architecture of the IQ Swerve Bot Visualizer is structured into three distinct layers, each responsible for different aspects of the application's functionality. This separation ensures modularity and ...
+The architecture of the IQ Swerve Bot Visualizer is structured into three distinct layers, each responsible for different aspects of the application's functionality.
 
 ### Presentation Layer (src/routes/+page.svelte)
 
