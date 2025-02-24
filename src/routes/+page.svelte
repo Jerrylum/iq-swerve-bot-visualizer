@@ -66,7 +66,17 @@
 
 <!-- Swerve Bot Visualizer -->
 
-<div class="flex h-screen w-full items-center justify-center">
+<div class="flex h-screen w-full flex-col items-center justify-center">
+	<h1 class="mb-2 text-2xl">IQ Swerve Bot Visualizer</h1>
+	<p class="mb-4 w-[800px] text-center text-lg">
+		An interactive web-based visualization tool for understanding swerve drive kinematics and
+		control systems. To learn more about swerve drive, visit
+		<a
+			href="https://github.com/Jerrylum/iq-swerve-bot-visualizer"
+			target="_blank"
+			class="text-blue-500">the GitHub repository</a
+		>.
+	</p>
 	<Stage width={800} height={640} staticConfig={true}>
 		<Layer>
 			<Rect x={0} y={0} width={800} height={640} fill="#EEE" />
