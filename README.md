@@ -134,6 +134,7 @@ Responsibilities:
 ### Control Layer (src/lib/Usercode.ts)
 
 The control layer is where the logic for swerve drive kinematics is implemented. It operates on a 10ms interval, processing inputs from the physical controllers and computing the necessary adjustments to the swerve modules' positions and velocities based on the user's input. This layer uses the context to interact with the hardware simulation, sending commands and receiving feedback.
+
 Responsibilities:
 
 - Implementing the swerve drive kinematics and control algorithms.
@@ -143,6 +144,7 @@ Responsibilities:
 ### Physics Layer (src/lib/Hardware.svelte.ts)
 
 At the core of the simulation is the physics layer, which simulates the physical behavior of motors and other components. This layer includes detailed implementations of motor dynamics, such as velocity and position PID controllers, and handles the physical constraints and behaviors of the motors based on the commands received from the control layer.
+
 Responsibilities:
 
 - Simulating motor dynamics and physical behaviors.
