@@ -15,9 +15,11 @@ import { clamp } from './Math';
  * @returns The bounded heading.
  */
 export function boundHeading(num: number): number {
-	num = num % 360;
-	if (num < 0) num += 360;
-	return num;
+	// Double modulo operation ensures positive result for negative inputs:
+	// 1. First % 360 reduces large numbers to (-360, 360) range
+	// 2. Adding 360 shifts negative values to positive (e.g., -90 -> 270)
+	// 3. Final % 360 caps result to [0, 360) range
+	return ((num % 360) + 360) % 360;
 }
 
 /**
@@ -26,9 +28,13 @@ export function boundHeading(num: number): number {
  * @returns The bounded angle.
  */
 export function boundAngle(num: number): number {
-	while (num > Math.PI) num -= 2 * Math.PI;
-	while (num <= -Math.PI) num += 2 * Math.PI;
-	return num;
+	// Mathematical wrapping without loops:
+	// 1. Calculate how many full 2π rotations we need to subtract
+	// 2. (num - π) shifts the wrapping point to 0 instead of π
+	// 3. Math.ceil() determines the number of overflow/underflow cycles
+	// 4. 2π multiplier converts cycle count to actual radians to subtract
+	// This effectively "unwinds" the angle to the equivalent value in (-π, π]
+	return num - 2 * Math.PI * Math.ceil((num - Math.PI) / (2 * Math.PI));
 }
 
 /**
