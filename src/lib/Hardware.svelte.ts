@@ -553,7 +553,8 @@ export class MotorImpl implements Motor, DeviceImpl {
 		// IMPORTANT; Understand VEX IQ motor behavior before changing this
 
 		const now = Date.now();
-		const dt = (now - this.lastUpdateTime) / 1000; // Convert to seconds
+		// Limit the delta time to 30ms to prevent tab pause issues
+		const dt = Math.min((now - this.lastUpdateTime) / 1000, 0.03); // Convert to seconds
 		const currPos = this.getPosition();
 		const currVel = (currPos - this.lastMeasuredPosition) / dt / 6; // to RPM
 		this.measuring.push(currVel);
