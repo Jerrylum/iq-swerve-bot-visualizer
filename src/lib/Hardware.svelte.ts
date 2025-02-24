@@ -259,13 +259,23 @@ export interface Motor extends Device {
 }
 
 export enum AxisType {
+	/** The left joystick's Y axis */
 	AxisA = 'AxisA',
+	/** The left joystick's X axis */
 	AxisB = 'AxisB',
+	/** The right joystick's X axis */
 	AxisC = 'AxisC',
+	/** The right joystick's Y axis */
 	AxisD = 'AxisD'
 }
 
 export interface Controller {
+	/**
+	 * Gets the value of an axis
+	 * @param axis The axis to get the value of
+	 * @see AxisType
+	 * @returns The value of the axis
+	 */
 	getValue(axis: AxisType): number;
 }
 
@@ -708,10 +718,16 @@ export class ControllerImpl implements Controller {
 
 	constructor() {}
 
+	/** @inheritdoc */
 	public getValue(axis: AxisType): number {
 		return this.axes[axis];
 	}
 
+	/**
+	 * @param axis The axis to set the value of
+	 * @param value The value to set the axis to
+	 * @see AxisType
+	 */
 	public setValue(axis: AxisType, value: number) {
 		this.axes[axis] = Math.round(clamp(value, -100, 100));
 	}
