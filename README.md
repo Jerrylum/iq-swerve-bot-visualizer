@@ -102,7 +102,7 @@ $$
 \end{cases}
 $$
 
-This piecewise function guarantees the wheel always rotates ≤90° to reach target orientation, minimizing mechanical wear and energy consumption.
+This step guarantees the wheel always rotates ≤90° to reach target orientation, minimizing mechanical wear and energy consumption.
 
 ### Wheel Velocity Calculation
 
