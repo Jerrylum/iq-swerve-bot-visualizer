@@ -57,7 +57,7 @@ export function shortestTurn(
 	targetHeading: number
 ): { pos: number; direction: 1 | -1 } {
 	// Calculate effective heading considering current direction and position
-	// (1 - currentDirection) * 90 means the +180 degree turn when the wheel is reversed
+	// (1 - currentDirection) * 90 means add +180 degrees turn when the wheel is reversed
 	const currentHeading = boundHeading(currentPos + (1 - currentDirection) * 90);
 
 	// Calculate minimal turn angle in [-180, 180) range using modular arithmetic:
