@@ -174,5 +174,3 @@ bun run build
 
 - [Swerve Drive Fundamentals - Team 6624](https://compendium.readthedocs.io/en/latest/tasks/drivetrains/swerve.html)
 - [VEX IQ Swerve Implementation - 6083程式組](https://hackmd.io/@6083overlookingPrograming/B1psNHAqR)
-- [Motor Dynamics Model](https://ctms.engin.umich.edu/CTMS/index.php?example=MotorSpeed&section=SystemModeling)
-- [Field-Centric Mathematics](https://www.chiefdelphi.com/t/field-centric-swerve-drive/163560)
