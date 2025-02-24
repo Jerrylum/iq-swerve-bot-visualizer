@@ -67,35 +67,40 @@ Where:
 The swerve drive module will always turn the shortest path to the target heading. For example, if the module is facing 0 degrees and the target heading is 135 degrees, it will turn left 45 degrees to get to 45 degrees, then reverse the wheel direction, ensuring minimal movement. Given:
 
 - Current encoder position: $p_c \in \mathbb{R}$ (unbounded degrees)
-- Current movement direction: $d_c \in \{-1, 1\}$
+- Current movement direction: $`d_c \in \{-1, 1\}`$
 - Target heading: $h_t \in [0, 360)$
 
 The algorithm computes:
 
-1. **Effective Current Heading**:
-   $$ h_c = (p_c + 90 \cdot (1 - d_c)) \mod 360 $$
-   Where $d_c \in \{-1,1\}$ simplifies direction handling:
+**Effective Current Heading**:
 
-   - $d_c = 1$: $h_c = p_c \mod 360$
-   - $d_c = -1$: $h_c = (p_c + 180) \mod 360$
+$$ h_c = (p_c + 90 \cdot (1 - d_c)) \mod 360 $$
 
-2. **Angular Delta Calculation** using modular arithmetic:
-   $$ \Delta = ((h_t - h_c + 180) \mod 360) - 180 $$
-   This normalizes the difference to $[-180, 180)$ range
+Where $`d_c \in \{-1,1\}`$ simplifies direction handling:
 
-3. **Direction Optimization**:
-   $$
-   \text{If } |\Delta| > 90: \begin{cases}
-     p_t = p_c + (\Delta - 180 \cdot \text{sign}(\Delta)) \\
-     d_t = -d_c
-   \end{cases}
-   $$
-   $$
-   \text{Else}: \begin{cases}
-     p_t = p_c + \Delta \\
-     d_t = d_c
-   \end{cases}
-   $$
+- $`d_c = 1$: $h_c = p_c \mod 360`$
+- $`d_c = -1$: $h_c = (p_c + 180) \mod 360`$
+
+**Angular Delta Calculation** using modular arithmetic:
+
+$$ \Delta = ((h_t - h_c + 180) \mod 360) - 180 $$
+
+This normalizes the difference to $[-180, 180)$ range
+
+**Direction Optimization**:
+
+$$
+\text{If } |\Delta| > 90: \begin{cases}
+  p_t = p_c + (\Delta - 180 \cdot \text{sign}(\Delta)) \\
+  d_t = -d_c
+\end{cases}
+$$
+$$
+\text{Else}: \begin{cases}
+  p_t = p_c + \Delta \\
+  d_t = d_c
+\end{cases}
+$$
 
 This piecewise function guarantees the wheel always rotates ≤90° to reach target orientation, minimizing mechanical wear and energy consumption.
 
