@@ -447,6 +447,7 @@ export class MotorImpl implements Motor, DeviceImpl {
 
 	/** @inheritdoc */
 	isDone(): boolean {
+		// IMPORTANT; Understand VEX IQ motor behavior before changing this
 		if (!this.isPositionControl) return !this.isSpinning();
 
 		if (this.targetPosition === null) return true;
@@ -549,6 +550,8 @@ export class MotorImpl implements Motor, DeviceImpl {
 	 * @inheritdoc
 	 */
 	public loop() {
+		// IMPORTANT; Understand VEX IQ motor behavior before changing this
+
 		const now = Date.now();
 		const dt = (now - this.lastUpdateTime) / 1000; // Convert to seconds
 		const currPos = this.getPosition();
