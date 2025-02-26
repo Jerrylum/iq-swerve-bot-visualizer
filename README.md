@@ -10,6 +10,8 @@ A 2-module swerve bot:
 
 ![A picture of a 2-module swerve bot](references/two-module-swerve-bot.jpeg)
 
+Check out the [online build instruction](https://instructions.online/?id=16296-two-module-iq-swerve-bot) for more details!
+
 ## Features
 
 - **Real-time vector visualization** of wheel direction and velocity
